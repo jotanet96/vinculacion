@@ -22,63 +22,26 @@
       @if (!empty($chart) and  !empty($chart->datasets))
       <li role="presentation"><a href="#graph" aria-controls="graph" role="tab" data-toggle="tab">Gráfico</a></li>
       @endif
-      @if (!empty($chart2) and  !empty($chart2->datasets))
-      <li role="presentation"><a href="#graph2" aria-controls="graph" role="tab" data-toggle="tab">Gráfico</a></li>
-      @endif
-      @if (!empty($chart3) and  !empty($chart3->datasets))
-      <li role="presentation"><a href="#graph3" aria-controls="graph" role="tab" data-toggle="tab">Gráfico</a></li>
-      @endif
-      @if (!empty($chart4) and  !empty($chart4->datasets))
-      <li role="presentation"><a href="#graph4" aria-controls="graph" role="tab" data-toggle="tab">Gráfico</a></li>
-      @endif
-      @if (!empty($chart5) and  !empty($chart5->datasets))
-      <li role="presentation"><a href="#graph5" aria-controls="graph" role="tab" data-toggle="tab">Gráfico</a></li>
-      @endif
     </ul>
     <div class="tab-content">
       <div role="tabpanel" class="tab-pane active" id="list">
         <div class="box-body">
                     @include('area_influencias.table')
-           </div>
+        </div>
       </div>
       @if (!empty($chart) and  !empty($chart->datasets))
       <div role="tabpanel" class="tab-pane" id="graph">
+
+        {!! Form::open(['route' => 'areaInfluencias.index', 'method' => 'GET','class' => 'navbar-form navbar-left pull-right', 'role' => 'search', 'id' => 'areaInfuenciaForm']) !!}
+                        <div class="form-group">
+                          {!! Form::select('selectareaInfluencias', ['Manejo Ambiental','Permeabilidad del suelo','Clima','Condicion de Drenaje','Ecosistema'] ,null, ['class' => 'form-control', 'placeholder'=>'Seleccione un parámetro', 'id' => 'mySelect']) !!}
+                        </div>
+        {!! Form::close() !!}
+
         <div>{!! $chart->container() !!}</div>
         <div id="container"></div>
         <script src="//cdnjs.cloudflare.com/ajax/libs/highcharts/6.0.6/highcharts.js" charset="utf-8"></script>
         {!! $chart->script() !!}
-      </div>
-      @endif
-      @if (!empty($chart2) and  !empty($chart2->datasets))
-      <div role="tabpanel" class="tab-pane" id="graph2">
-        <div>{!! $chart2->container() !!}</div>
-        <div id="container"></div>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/highcharts/6.0.6/highcharts.js" charset="utf-8"></script>
-        {!! $chart2->script() !!}
-      </div>
-      @endif
-      @if (!empty($chart3) and  !empty($chart3->datasets))
-      <div role="tabpanel" class="tab-pane" id="graph3">
-        <div>{!! $chart3->container() !!}</div>
-        <div id="container"></div>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/highcharts/6.0.6/highcharts.js" charset="utf-8"></script>
-        {!! $chart3->script() !!}
-      </div>
-      @endif
-      @if (!empty($chart4) and  !empty($chart4->datasets))
-      <div role="tabpanel" class="tab-pane" id="graph4">
-        <div>{!! $chart4->container() !!}</div>
-        <div id="container"></div>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/highcharts/6.0.6/highcharts.js" charset="utf-8"></script>
-        {!! $chart4->script() !!}
-      </div>
-      @endif
-      @if (!empty($chart5) and  !empty($chart5->datasets))
-      <div role="tabpanel" class="tab-pane" id="graph5">
-        <div>{!! $chart5->container() !!}</div>
-        <div id="container"></div>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/highcharts/6.0.6/highcharts.js" charset="utf-8"></script>
-        {!! $chart5->script() !!}
       </div>
       @endif
 
@@ -90,10 +53,13 @@
 </div>
 @endsection
 
-
-
 @section('scripts')
 <script>
+    $('#mySelect').change(function(e) {
+        $( "#areaInfuenciaForm" ).submit();
+        e.preventDefault();
+   });
+
     var map;
     var marker;
     var coords_lat = new Array();
