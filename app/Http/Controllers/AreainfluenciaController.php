@@ -38,15 +38,11 @@ class AreaInfluenciaController extends AppBaseController {
   * @return Response
   */
   public function index(Request $request) {
-    $this->areaInfluenciaRepository->pushCriteria(new RequestCriteria($request));
+        $this->areaInfluenciaRepository->pushCriteria(new RequestCriteria($request));
     $areaInfluencias = $this->areaInfluenciaRepository->all();  
     return view('area_influencias.index')
             ->with('areaInfluencias', $areaInfluencias)
-            ->with('chart',$this->createChart($areaInfluencias))
-            ->with('chart2',$this->createChart2($areaInfluencias))
-            ->with('chart3',$this->createChart3($areaInfluencias))
-            ->with('chart4',$this->createChart4($areaInfluencias))
-            ->with('chart5',$this->createChart5($areaInfluencias));
+            ->with('chart',$this->createChart($areaInfluencias, $request->get('selectareaInfluencia')));
   }
   /**
   * Show the form for creating a new AreaInfluencia.
@@ -202,168 +198,185 @@ class AreaInfluenciaController extends AppBaseController {
 
 
 
-    public function createChart($areaInfluencias) {
-
-      $preprocessedDataset = $areaInfluencias->sortBy('nombre');
-
-      $dataset = collect();
-      foreach ($preprocessedDataset as $areainfluencias) {
-        $temp = [
-          'nombre' => (string)$areainfluencias->manejoambiental->nombre,
-          'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
-          'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
-        ];
-        $dataset->push($temp);
-      }
-      $dataset = $dataset->groupBy('nombre');
-      $dataset = $dataset->map(function ($item) {
-        return $item->groupBy('TipoSuelo_id')->map(function ($item2){
-          return $item2->count('tipoTerrenoDescripcion');
-        });
-      });
-      $labels = $dataset->collapse()->toArray();
-      $dataset = $dataset->toArray();
-      $labels = array_fill_keys(array_keys($labels), 0);
-      $chart = new DefaultChart;
-      foreach ($dataset as $key => $item) {
-        $chart->dataset($key, 'column', array_values(array_merge($labels,$item)));
-      }
-      $chart->labels(array_keys($labels));
-      $chart->title('Áreas de Influencia por Manejo Ambiental');
-      $chart->label("Áreas Por Manejo Ambiental");
-      return $chart;
-    }
-
-    public function createChart2($areaInfluencias) {
-
-      $preprocessedDataset = $areaInfluencias->sortBy('nombre');
+public function createChart($areaInfluencias, $tipoVariable){
+             $preprocessedDataset = $areaInfluencias->sortBy('nombre');
 
       $dataset = collect();
-      foreach ($preprocessedDataset as $areainfluencias) {
-        $temp = [
-          'nombre' => (string)$areainfluencias->permeabilidadsuelo->nombre,
-          'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
-          'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
-        ];
-        $dataset->push($temp);
-      }
-      $dataset = $dataset->groupBy('nombre');
-      $dataset = $dataset->map(function ($item) {
-        return $item->groupBy('TipoSuelo_id')->map(function ($item2){
-          return $item2->count('tipoTerrenoDescripcion');
-        });
-      });
-      //dd($asociacions);
-      $labels = $dataset->collapse()->toArray();
-      $dataset = $dataset->toArray();
-      $labels = array_fill_keys(array_keys($labels), 0);
-      $chart2 = new DefaultChart;
-      foreach ($dataset as $key => $item) {
-        $chart2->dataset($key, 'column', array_values(array_merge($labels,$item)));
-      }
-      $chart2->labels(array_keys($labels));
-      $chart2->title('Áreas de Influencia por Permeabilidad de Suelo');
-      $chart2->label("Áreas Por Permeabilidad de Suelo");
-      return $chart2;
+        switch ($tipoVariable) {                    
+             case '0':
+                foreach ($preprocessedDataset as $areainfluencias) {
+                    $temp = [
+                      'nombre' => (string)$areainfluencias->manejoambiental->nombre,
+                      'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
+                      'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
+                    ];
+                    $dataset->push($temp);
+                  }
+                $dataset = $dataset->groupBy('nombre');
+                $dataset = $dataset->map(function ($item) {
+                    return $item->groupBy('TipoSuelo_id')->map(function ($item2){
+                        return $item2->count('tipoTerrenoDescripcion');
+                    });
+                });
+                    //dd($asociacions);
+                $labels = $dataset->collapse()->toArray();
+                $dataset = $dataset->toArray();
+                $labels = array_fill_keys(array_keys($labels), 0);
+                $chart = new DefaultChart;
+                foreach ($dataset as $key => $item) {
+                    $chart->dataset($key, 'column', array_values(array_merge($labels, $item)));
+                }
+                $chart->labels(array_keys($labels));
+                $chart->title('Área de Influencia');
+                $chart->label("Número de áreas de Influencias");
+                return $chart;
+                break;
+            
+            case '1':
+                foreach ($preprocessedDataset as $areainfluencias) {
+                    $temp = [
+                        'nombre' => (string)$areainfluencias->permeabilidadsuelo->nombre,
+                        'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
+                        'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
+                    ];
+                    $dataset->push($temp);
+                }
+                $dataset = $dataset->groupBy('nombre');
+                $dataset = $dataset->map(function ($item) {
+                    return $item->groupBy('TipoSuelo_id')->map(function ($item2){
+                        return $item2->count('tipoTerrenoDescripcion');
+                    });
+                });
+                    //dd($asociacions);
+                $labels = $dataset->collapse()->toArray();
+                $dataset = $dataset->toArray();
+                $labels = array_fill_keys(array_keys($labels), 0);
+                $chart = new DefaultChart;
+                foreach ($dataset as $key => $item) {
+                    $chart->dataset($key, 'column', array_values(array_merge($labels, $item)));
+                }
+                $chart->labels(array_keys($labels));
+                $chart->title('Área de Influencia');
+                $chart->label("Número de áreas de Influencias");
+                return $chart;
+                break;
+            
+            case '2':
+                foreach ($preprocessedDataset as $areainfluencias) {
+                    $temp = [
+                        'nombre' => (string)$areainfluencias->clima->nombre,
+                        'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
+                        'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
+                    ];
+                    $dataset->push($temp);
+                }
+                $dataset = $dataset->groupBy('nombre');
+                $dataset = $dataset->map(function ($item) {
+                    return $item->groupBy('TipoSuelo_id')->map(function ($item2){
+                        return $item2->count('tipoTerrenoDescripcion');
+                    });
+                });
+                    //dd($asociacions);
+                $labels = $dataset->collapse()->toArray();
+                $dataset = $dataset->toArray();
+                $labels = array_fill_keys(array_keys($labels), 0);
+                $chart = new DefaultChart;
+                foreach ($dataset as $key => $item) {
+                    $chart->dataset($key, 'column', array_values(array_merge($labels, $item)));
+                }
+                $chart->labels(array_keys($labels));
+                $chart->title('Área de Influencia');
+                $chart->label("Número de áreas de Influencias");
+                return $chart;
+                break;
+            
+            case '3':
+                foreach ($preprocessedDataset as $areainfluencias) {
+                    $temp = [
+                        'nombre' => (string)$areainfluencias->condicionesdrenaje->nombre,
+                        'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
+                        'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
+                    ];
+                    $dataset->push($temp);
+                }
+                $dataset = $dataset->groupBy('nombre');
+                $dataset = $dataset->map(function ($item) {
+                    return $item->groupBy('TipoSuelo_id')->map(function ($item2){
+                        return $item2->count('tipoTerrenoDescripcion');
+                    });
+                });
+                    //dd($asociacions);
+                $labels = $dataset->collapse()->toArray();
+                $dataset = $dataset->toArray();
+                $labels = array_fill_keys(array_keys($labels), 0);
+                $chart = new DefaultChart;
+                foreach ($dataset as $key => $item) {
+                    $chart->dataset($key, 'column', array_values(array_merge($labels, $item)));
+                }
+                $chart->labels(array_keys($labels));
+                $chart->title('Área de Influencia');
+                $chart->label("Número de áreas de Influencias");
+                return $chart;
+                break;
+            
+            case '4':
+                 foreach ($preprocessedDataset as $areainfluencias) {
+                     $temp = [
+                         'nombre' => (string)$areainfluencias->ecosistema->nombre,
+                         'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
+                         'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
+                     ];
+                     $dataset->push($temp);
+                 }
+                $dataset = $dataset->groupBy('nombre');
+                $dataset = $dataset->map(function ($item) {
+                    return $item->groupBy('TipoSuelo_id')->map(function ($item2){
+                        return $item2->count('tipoTerrenoDescripcion');
+                    });
+                });
+                    //dd($asociacions);
+                $labels = $dataset->collapse()->toArray();
+                $dataset = $dataset->toArray();
+                $labels = array_fill_keys(array_keys($labels), 0);
+                $chart = new DefaultChart;
+                foreach ($dataset as $key => $item) {
+                    $chart->dataset($key, 'column', array_values(array_merge($labels, $item)));
+                }
+                $chart->labels(array_keys($labels));
+                $chart->title('Área de Influencia');
+                $chart->label("Número de áreas de Influencias");
+                return $chart;
+                break;
+            
+            default:
+                foreach ($preprocessedDataset as $areainfluencias) {
+                    $temp = [
+                      'nombre' => (string)$areainfluencias->manejoambiental->nombre,
+                      'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
+                      'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
+                    ];
+                    $dataset->push($temp);
+                  }
+                $dataset = $dataset->groupBy('nombre');
+                $dataset = $dataset->map(function ($item) {
+                    return $item->groupBy('TipoSuelo_id')->map(function ($item2){
+                        return $item2->count('tipoTerrenoDescripcion');
+                    });
+                });
+                    //dd($asociacions);
+                $labels = $dataset->collapse()->toArray();
+                $dataset = $dataset->toArray();
+                $labels = array_fill_keys(array_keys($labels), 0);
+                $chart = new DefaultChart;
+                foreach ($dataset as $key => $item) {
+                    $chart->dataset($key, 'column', array_values(array_merge($labels, $item)));
+                }
+                $chart->labels(array_keys($labels));
+                $chart->title('Área de Influencia');
+                $chart->label("Número de áreas de Influencias");
+                return $chart;
+                break;
+        }
     }
-
-    public function createChart3($areaInfluencias) {
-
-      $preprocessedDataset = $areaInfluencias->sortBy('nombre');
-
-      $dataset = collect();
-      foreach ($preprocessedDataset as $areainfluencias) {
-        $temp = [
-          'nombre' => (string)$areainfluencias->clima->nombre,
-          'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
-          'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
-        ];
-        $dataset->push($temp);
-      }
-      $dataset = $dataset->groupBy('nombre');
-      $dataset = $dataset->map(function ($item) {
-        return $item->groupBy('TipoSuelo_id')->map(function ($item2){
-          return $item2->count('tipoTerrenoDescripcion');
-        });
-      });
-      //dd($asociacions);
-      $labels = $dataset->collapse()->toArray();
-      $dataset = $dataset->toArray();
-      $labels = array_fill_keys(array_keys($labels), 0);
-      $chart3 = new DefaultChart;
-      foreach ($dataset as $key => $item) {
-        $chart3->dataset($key, 'column', array_values(array_merge($labels,$item)));
-      }
-      $chart3->labels(array_keys($labels));
-      $chart3->title('Áreas de Influencia por Clima');
-      $chart3->label("Áreas Por Clima");
-      return $chart3;
-    }
-    
-    public function createChart4($areaInfluencias) {
-
-      $preprocessedDataset = $areaInfluencias->sortBy('nombre');
-
-      $dataset = collect();
-      foreach ($preprocessedDataset as $areainfluencias) {
-        $temp = [
-          'nombre' => (string)$areainfluencias->condicionesdrenaje->nombre,
-          'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
-          'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
-        ];
-        $dataset->push($temp);
-      }
-      $dataset = $dataset->groupBy('nombre');
-      $dataset = $dataset->map(function ($item) {
-        return $item->groupBy('TipoSuelo_id')->map(function ($item2){
-          return $item2->count('tipoTerrenoDescripcion');
-        });
-      });
-      //dd($asociacions);
-      $labels = $dataset->collapse()->toArray();
-      $dataset = $dataset->toArray();
-      $labels = array_fill_keys(array_keys($labels), 0);
-      $chart4 = new DefaultChart;
-      foreach ($dataset as $key => $item) {
-        $chart4->dataset($key, 'column', array_values(array_merge($labels,$item)));
-      }
-      $chart4->labels(array_keys($labels));
-      $chart4->title('Áreas de Influencia por Condiciones de Drenaje');
-      $chart4->label("Áreas Por Condiciones de Drenaje");
-      return $chart4;
-    }
-    
-    public function createChart5($areaInfluencias) {
-
-      $preprocessedDataset = $areaInfluencias->sortBy('nombre');
-
-      $dataset = collect();
-      foreach ($preprocessedDataset as $areainfluencias) {
-        $temp = [
-          'nombre' => (string)$areainfluencias->ecosistema->nombre,
-          'tipoTerrenoDescripcion' =>(string) $areainfluencias->tipoTerrenoDescripcion,
-          'TipoSuelo_id' =>(string)$areainfluencias->tiposuelo->nombre
-        ];
-        $dataset->push($temp);
-      }
-      $dataset = $dataset->groupBy('nombre');
-      $dataset = $dataset->map(function ($item) {
-        return $item->groupBy('TipoSuelo_id')->map(function ($item2){
-          return $item2->count('tipoTerrenoDescripcion');
-        });
-      });
-      //dd($asociacions);
-      $labels = $dataset->collapse()->toArray();
-      $dataset = $dataset->toArray();
-      $labels = array_fill_keys(array_keys($labels), 0);
-      $chart5 = new DefaultChart;
-      foreach ($dataset as $key => $item) {
-        $chart5->dataset($key, 'column', array_values(array_merge($labels,$item)));
-      }
-      $chart5->labels(array_keys($labels));
-      $chart5->title('Áreas de Influencia por Ecosistema');
-      $chart5->label("Áreas Por Ecosistema");
-      return $chart5;
-    }
-
+   
 }
